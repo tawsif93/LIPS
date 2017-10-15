@@ -1,6 +1,7 @@
 package com.spl3.lips.files;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +24,11 @@ public class DirectoryReader {
 			return reader = new DirectoryReader();
 		}
 		return reader;
+	}
+
+	public void init(String projectPath){
+		repository = new DirectoryRepository(projectPath);
+		DirectoryReader.getInstance().listFilesForFolder(repository.getRootPath());
 	}
 
 	public void listFilesForFolder(final File folder) {
@@ -49,7 +55,14 @@ public class DirectoryReader {
 			} else {
 				if(fileEntry != null){
 //					System.out.println(fileEntry.getName());
-					directory.addFilePath(fileEntry.getName());
+
+					for (FileExtension extension : FileExtension.values()){
+
+						if(FilenameUtils.getExtension(fileEntry.getName()).equals(extension.getValue())) {
+							directory.addFilePath(fileEntry.getName());
+							break;
+						}
+					}
 				}
 			}
 		}
@@ -75,6 +88,10 @@ public class DirectoryReader {
 		return "";
 	}
 
+	public DirectoryRepository getRepository(){
+		return repository;
+	}
+
 	public static void main(String[] args) {
 
 //		final File folder = new File("/home/peacefrog/Desktop");
@@ -87,7 +104,7 @@ public class DirectoryReader {
 		System.out.println("\n\n\n");
 		repository = new DirectoryRepository("/home/peacefrog/SPL_LIPS");
 
-		DirectoryReader.getInstance().listFilesForFolder("/home/peacefrog/SPL_LIPS");
+		DirectoryReader.getInstance().listFilesForFolder(repository.getRootPath());
 
 		System.out.println(repository.getDirectories());
 	}

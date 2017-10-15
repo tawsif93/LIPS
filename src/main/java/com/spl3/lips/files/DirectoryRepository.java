@@ -37,5 +37,7 @@ public class DirectoryRepository {
 		return files;
 	}
 
-
+	protected String getRootPath(){
+		return  rootPath;
+	}
 }
