@@ -1,12 +1,10 @@
 package com.spl3.lips.operations;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
 /**
  * Created by peacefrog on 10/5/17.
@@ -29,6 +27,8 @@ public class SourceExecutor {
 	public void compileJavaFile(File path){
 
 		try {
+			removeClassFile(path);
+
 			String command = "javac " + path.getPath();
 			runProcess(command);
 //			Runtime.getRuntime().exec(command).getOutputStream().flush();
@@ -69,17 +69,30 @@ public class SourceExecutor {
 		}
 	}
 
-	private boolean runProcess(String command) throws Exception {
+	private void runProcess(String command) throws Exception {
 		Process pro = Runtime.getRuntime().exec(command);
 		printLines(command + " stdout:", pro.getInputStream());
 		pro.waitFor();
 		System.out.println(command + " exitValue() " + pro.exitValue());
+		System.out.println(isError(pro.getErrorStream() , command));
 	}
 
-	private boolean isError(Process pro , String command) throws Exception {
-		String output = IOUtils.toString(pro.getErrorStream());
-		printLines(command + " stderr:", pro.getErrorStream());
+	private boolean isError(InputStream  errorStream , String command) throws Exception {
+//		printLines(command + " stderr:", errorStream);
+		String output = IOUtils.toString(errorStream);
 
-		return StringUtils.isEmpty(output);
+		return !StringUtils.isEmpty(output);
+	}
+
+	private void removeClassFile(File path){
+		String classPath = path.getPath();
+
+		classPath = classPath.split(".java")[0] + ".class";
+//		System.out.println(classPath);
+		try {
+			FileUtils.forceDelete(new File(classPath));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
