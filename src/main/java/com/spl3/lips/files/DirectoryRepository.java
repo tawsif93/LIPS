@@ -1,7 +1,12 @@
 package com.spl3.lips.files;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.stream.Stream;
 
 /**
  * Created by peacefrog on 9/22/17.
@@ -35,6 +40,25 @@ public class DirectoryRepository {
 		ArrayList<File> files = new ArrayList<>();
 		directories.forEach(directory -> files.addAll(directory.getFiles()));
 		return files;
+	}
+
+	public Integer getFileLineCount(String filePath){
+		Integer numOfLines = 0;
+
+		try (Stream<String> lines = Files.lines(Paths.get(filePath),Charset.defaultCharset())) {
+			numOfLines = Math.toIntExact(lines.count());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return numOfLines;
+	}
+
+	public Integer getAllFilesLineCount(File[] files){
+		int totalCount = 0;
+		for (File file : files) {
+			totalCount += getFileLineCount(file.getPath());
+		}
+		return totalCount;
 	}
 
 	protected String getRootPath(){
