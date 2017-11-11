@@ -59,7 +59,7 @@ public class DirectoryReader {
 					for (FileExtension extension : FileExtension.values()){
 
 						if(FilenameUtils.getExtension(fileEntry.getName()).equals(extension.getValue())) {
-							directory.addFilePath(fileEntry.getName());
+							directory.addFilePath(fileEntry.getPath());
 							break;
 						}
 					}
