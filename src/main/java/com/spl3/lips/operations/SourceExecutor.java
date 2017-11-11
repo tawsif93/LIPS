@@ -3,6 +3,7 @@ package com.spl3.lips.operations;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 
@@ -12,6 +13,7 @@ import java.io.*;
  */
 public class SourceExecutor {
 
+	final static Logger logger = Logger.getLogger(SourceExecutor.class);
 	private static SourceExecutor sourceExecutorInstance;
 
 	private SourceExecutor() {
