@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.*;
+import java.nio.charset.Charset;
 
 /**
  * Created by peacefrog on 10/5/17.
@@ -81,7 +82,7 @@ public class SourceExecutor {
 
 	private boolean isError(InputStream  errorStream , String command) throws Exception {
 //		printLines(command + " stderr:", errorStream);
-		String output = IOUtils.toString(errorStream);
+		String output = IOUtils.toString(errorStream, Charset.defaultCharset());
 
 		return !StringUtils.isEmpty(output);
 	}
