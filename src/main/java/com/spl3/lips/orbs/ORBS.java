@@ -1,12 +1,18 @@
 package com.spl3.lips.orbs;
 
 import com.spl3.lips.files.DirectoryReader;
+import com.spl3.lips.operations.ORBSLogger;
 import com.spl3.lips.operations.SourceExecutor;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -14,7 +20,12 @@ import java.util.Map;
  * Time 10:17 PM
  */
 public class ORBS {
-//  Number of ignored lines
+
+	final static Logger logger = Logger.getLogger(ORBS.class);
+
+//	 Size of the deletion window
+	private int delta = 3;
+	//  Number of ignored lines
 	private  int numberOfIgnoredChanges = 0;
 //	Number of compilations
 	private int numberOfCompilation = 0;
@@ -31,13 +42,18 @@ public class ORBS {
 	private String [][] lines ;
 	private boolean [] deleted ;
 	private Map<String, Integer> startLines;
+	private Map<String, String> sliceCache;
 
 	public static void main(String[] args) {
+
+		ORBSLogger.tieSystemOutAndErrToLog();
 		DirectoryReader.getInstance().init("/home/peacefrog/SPL_LIPS");
 		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
 		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
 		ORBS orbs = new ORBS();
 		orbs.setup();
+
+//		logger.info(orbs.hash());
 	}
 
 	private void setup(){
@@ -46,6 +62,8 @@ public class ORBS {
 
 		lines = new String[numberOfLines + 1][];
 		deleted = new boolean[numberOfLines+1];
+		startLines = new HashMap<>();
+		sliceCache = new HashMap<>();
 
 		Arrays.fill(deleted, false);
 
@@ -56,8 +74,9 @@ public class ORBS {
 		final int[] currentLine = {0};
 
 		for(File file : files){
+			startLines.put(file.getPath() , currentLine[0]);
 			try {
-				FileUtils.readLines(file).forEach(o ->{
+				FileUtils.readLines(file, Charset.defaultCharset()).forEach(o ->{
 					lines[currentLine[0]][0] = file.getPath();
 					lines[currentLine[0]][1] = (String) o;
 					currentLine[0]++;
@@ -67,16 +86,28 @@ public class ORBS {
 			}
 		}
 
+		logger.info(Arrays.deepToString(lines));
 	}
 
 
-//	public void runORBS(){
-//		boolean reduced = true;
-//
-//		while (reduced){
-//			reduced = false;
-//			this.numberOfIterations += 1;
-//			line = start
-//		}
-//	}
+	public String hash(boolean[] sliced){
+		MessageDigest md5 = DigestUtils.getMd5Digest();
+
+		for (boolean b : sliced) {
+			md5.update(Boolean.toString(b).getBytes());
+		}
+		md5.update("pass".getBytes());
+//		return  DigestUtils.md5Hex("pass");
+		//convert the byte to hex format method 1
+		byte[] mdbytes = md5.digest();
+
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < mdbytes.length; i++) {
+			sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
+		}
+
+//		System.out.println("Digest(in hex format):: " + sb.toString());
+		return ( sb.toString());
+
+	}
 }
