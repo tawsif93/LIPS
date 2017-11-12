@@ -90,6 +90,68 @@ public class ORBS {
 	}
 
 
+	public void runORBS(){
+		boolean reduced = true;
+		int step = 1;
+		int start = 0;
+
+		while (reduced){
+			reduced = false;
+			this.numberOfIterations += 1;
+			int line = start;
+
+			while (line >= 0 && line < lines.length){
+				String currentFile = lines[line][0];
+				int currentLine = line+1-startLines.get(lines[line][0]);
+
+//         skip over all deleted lines
+				if (deleted[line]) {
+					logger.trace(currentFile + ":" + currentLine + ":.\n");
+					line += step;
+					continue;
+				}
+
+				boolean [] attemped = Arrays.copyOf(deleted , deleted.length);
+
+
+				String status = "";
+				boolean cached = false;
+				String rc = "";
+
+				int j = 1;
+				int ij = line;
+				while (j <= delta){
+					while (ij >= 0 && ij < deleted.length-1 && deleted[ij]){
+						ij += step;
+					}
+
+					if (ij < 0 || ij >= deleted.length-1) {
+						rc = "FAIL";
+						break;
+					}
+
+					attemped[ij] = true;
+
+					System.out.println("* " + numberOfIterations + " delete " + (line+1) + "-" + (ij+1)+ " in "+ currentFile + " at "+ currentLine);
+
+					boolean cachedComputation = false;
+					String checksum = hash(attemped);
+					rc = "";
+
+					if(sliceCache.containsKey(checksum)){
+						cachedComputation = true;
+						rc = sliceCache.get(checksum);
+						numberOfCachedCompilation++ ;
+						System.out.println( "comp cached " + numberOfCachedCompilation + ":");
+					}
+					else {
+						cachedComputation = false;
+					}
+				}
+			}
+		}
+	}
+
 	public String hash(boolean[] sliced){
 		MessageDigest md5 = DigestUtils.getMd5Digest();
 
