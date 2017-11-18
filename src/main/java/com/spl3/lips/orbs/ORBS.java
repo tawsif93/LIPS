@@ -158,7 +158,7 @@ public class ORBS {
 		for (boolean b : sliced) {
 			md5.update(Boolean.toString(b).getBytes());
 		}
-		md5.update("pass".getBytes());
+//		md5.update("pass".getBytes());
 //		return  DigestUtils.md5Hex("pass");
 		//convert the byte to hex format method 1
 		byte[] mdbytes = md5.digest();
@@ -171,5 +171,22 @@ public class ORBS {
 //		System.out.println("Digest(in hex format):: " + sb.toString());
 		return ( sb.toString());
 
+	}
+
+	public String fileCheckSum(File[] filePaths){
+
+		StringBuilder digestBuilder = new StringBuilder("");
+		for (File filePath : filePaths) {
+
+			try {
+				digestBuilder.append( DigestUtils.md5Hex(FileUtils.readFileToByteArray(filePath)));
+				digestBuilder.append(" ").append(filePath.getName());
+				digestBuilder.append(System.lineSeparator());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return digestBuilder.toString();
 	}
 }
