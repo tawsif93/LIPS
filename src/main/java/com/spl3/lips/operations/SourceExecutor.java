@@ -55,6 +55,21 @@ public class SourceExecutor {
 //		env.forEach((s, s2) -> System.out.println(s + " " + s2));
 	}
 
+	public void compileCFile(File path){
+
+		try {
+
+			String command = "gcc -o " + path.getPath().split("\\.x")[0] + " " + path.getPath();
+
+			runProcess(command);
+//			Runtime.getRuntime().exec(command).getOutputStream().flush();
+//			executeJavaFile(path);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+
 	private void executeJavaFile(File path) throws Exception {
 		String command;
 		command = "java -cp " + path.getParent() + " " + path.getName().replace(".java" , "") + " 10.0";

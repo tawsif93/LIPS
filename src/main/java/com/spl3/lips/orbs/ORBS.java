@@ -49,9 +49,10 @@ public class ORBS {
 		ORBSLogger.tieSystemOutAndErrToLog();
 		DirectoryReader.getInstance().init("/home/peacefrog/SPL_LIPS");
 		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
-		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
-		ORBS orbs = new ORBS();
-		orbs.setup();
+//		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
+		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
+//		ORBS orbs = new ORBS();
+//		orbs.setup();
 
 //		logger.info(orbs.hash());
 	}
