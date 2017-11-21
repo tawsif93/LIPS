@@ -2,7 +2,6 @@ package com.spl3.lips.orbs;
 
 import com.spl3.lips.files.DirectoryReader;
 import com.spl3.lips.operations.ORBSLogger;
-import com.spl3.lips.operations.SourceExecutor;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -22,6 +21,7 @@ import java.util.Map;
 public class ORBS {
 
 	final static Logger logger = Logger.getLogger(ORBS.class);
+	final static String outputPathName = "work";
 
 //	 Size of the deletion window
 	private int delta = 3;
@@ -50,11 +50,13 @@ public class ORBS {
 		DirectoryReader.getInstance().init("/home/peacefrog/SPL_LIPS");
 		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
 //		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
-		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
-//		ORBS orbs = new ORBS();
-//		orbs.setup();
+//		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
+		ORBS orbs = new ORBS();
+		orbs.setup();
+		orbs.createFiles();
 
 //		logger.info(orbs.hash());
+
 	}
 
 	private void setup(){
@@ -148,6 +150,37 @@ public class ORBS {
 					else {
 						cachedComputation = false;
 					}
+				}
+			}
+		}
+	}
+
+	public void createFiles(){
+
+		File directory = new File(outputPathName);
+		if (! directory.exists()){
+			directory.mkdir();
+			// If you require it to make the entire directory path including parents,
+			// use directory.mkdirs(); here instead.
+		}
+		try {
+			FileUtils.cleanDirectory(directory);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		for (int i = 0 ; i < lines.length-1 ; i++) {
+			File fileName = new File(lines[i][0]);
+			String fileContent = lines[i][1];
+
+			if(!deleted[i]){
+				try {
+					FileUtils.write(new File(outputPathName + File.separator + fileName.getName()) ,
+									fileContent + System.lineSeparator() ,
+									Charset.defaultCharset(),
+									true);
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
 		}
