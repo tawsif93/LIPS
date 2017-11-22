@@ -59,7 +59,7 @@ public class SourceExecutor {
 
 		try {
 
-			String command = "gcc -o " + path.getPath().split("\\.x")[0] + " " + path.getPath();
+			String command = "gcc -o " + path.getPath().split("\\.c")[0].concat(".cout") + " " + path.getPath();
 
 			runProcess(command);
 //			Runtime.getRuntime().exec(command).getOutputStream().flush();
@@ -98,8 +98,7 @@ public class SourceExecutor {
 	private boolean isError(InputStream  errorStream , String command) throws Exception {
 //		printLines(command + " stderr:", errorStream);
 		String output = IOUtils.toString(errorStream, Charset.defaultCharset());
-
-		return !StringUtils.isEmpty(output);
+		return !StringUtils.isEmpty(output) && StringUtils.contains(output, "error");
 	}
 
 	private void removeClassFile(File path){
