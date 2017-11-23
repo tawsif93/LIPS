@@ -7,7 +7,9 @@ package com.spl3.lips.files;
 public enum FileExtension {
 
 	java("java"),
-	C("c"),
+	javaClass("class"),
+	c("c"),
+	cExecutable(".cout"),
 	python("py");
 
 

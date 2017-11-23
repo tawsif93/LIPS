@@ -2,6 +2,7 @@ package com.spl3.lips.orbs;
 
 import com.spl3.lips.files.DirectoryReader;
 import com.spl3.lips.operations.ORBSLogger;
+import com.spl3.lips.operations.SourceExecutor;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -22,6 +23,7 @@ public class ORBS {
 
 	final static Logger logger = Logger.getLogger(ORBS.class);
 	final static String outputPathName = "work";
+	final static String FAIL = "FAIL";
 
 //	 Size of the deletion window
 	private int delta = 3;
@@ -50,10 +52,10 @@ public class ORBS {
 		DirectoryReader.getInstance().init("/home/peacefrog/SPL_LIPS");
 		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
 //		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
-//		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
-		ORBS orbs = new ORBS();
-		orbs.setup();
-		orbs.createFiles();
+		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
+//		ORBS orbs = new ORBS();
+//		orbs.setup();
+//		orbs.createFiles();
 
 //		logger.info(orbs.hash());
 
@@ -114,7 +116,7 @@ public class ORBS {
 					continue;
 				}
 
-				boolean [] attemped = Arrays.copyOf(deleted , deleted.length);
+				boolean [] attempted = Arrays.copyOf(deleted , deleted.length);
 
 
 				String status = "";
@@ -133,12 +135,12 @@ public class ORBS {
 						break;
 					}
 
-					attemped[ij] = true;
+					attempted[ij] = true;
 
 					System.out.println("* " + numberOfIterations + " delete " + (line+1) + "-" + (ij+1)+ " in "+ currentFile + " at "+ currentLine);
 
 					boolean cachedComputation = false;
-					String checksum = hash(attemped);
+					String checksum = hash(attempted);
 					rc = "";
 
 					if(sliceCache.containsKey(checksum)){
@@ -149,13 +151,15 @@ public class ORBS {
 					}
 					else {
 						cachedComputation = false;
+//						create the files and compile them
+						createFiles(attempted);
 					}
 				}
 			}
 		}
 	}
 
-	public void createFiles(){
+	public void createFiles(boolean[] sliced){
 
 		File directory = new File(outputPathName);
 		if (! directory.exists()){
@@ -173,7 +177,7 @@ public class ORBS {
 			File fileName = new File(lines[i][0]);
 			String fileContent = lines[i][1];
 
-			if(!deleted[i]){
+			if(!sliced[i]){
 				try {
 					FileUtils.write(new File(outputPathName + File.separator + fileName.getName()) ,
 									fileContent + System.lineSeparator() ,

@@ -27,15 +27,15 @@ public class SourceExecutor {
 		return sourceExecutorInstance;
 	}
 
-	public void compileJavaFile(File path){
-
+	public boolean compileJavaFile(File path){
+		boolean success = false ;
+		String command;
 		try {
 			removeClassFile(path);
-
-			String command = "javac " + path.getPath();
-			runProcess(command);
+			command = "javac " + path.getPath();
+			success = runProcess(command);
 //			Runtime.getRuntime().exec(command).getOutputStream().flush();
-			executeJavaFile(path);
+//			executeJavaFile(path);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -53,29 +53,38 @@ public class SourceExecutor {
 //		}
 
 //		env.forEach((s, s2) -> System.out.println(s + " " + s2));
+		return success;
 	}
 
-	public void compileCFile(File path){
-
+	public boolean compileCFile(File path){
+		boolean success = false ;
+		String command;
 		try {
-
-			String command = "gcc -o " + path.getPath().split("\\.c")[0].concat(".cout") + " " + path.getPath();
-
-			runProcess(command);
+			command = "gcc -o " + path.getPath().split("\\.c")[0].concat(".cout") + " " + path.getPath();
+			success = runProcess(command);
 //			Runtime.getRuntime().exec(command).getOutputStream().flush();
 //			executeJavaFile(path);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		return success;
 	}
 
 
-	private void executeJavaFile(File path) throws Exception {
+	private boolean executeJavaFile(File path) throws Exception {
 		String command;
-		command = "java -cp " + path.getParent() + " " + path.getName().replace(".java" , "") + " 10.0";
-		System.out.println(command);
+		boolean success = false ;
+		try {
+			command = "java -cp " + path.getParent() + " " + path.getName().replace(".java", "") + " 10.0";
+			System.out.println(command);
 //			Runtime.getRuntime().exec(s).getOutputStream().flush();
-		runProcess(command);
+			success = runProcess(command);
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+
+		return success;
 	}
 
 	private void printLines(String name, InputStream ins) throws Exception {
@@ -87,12 +96,14 @@ public class SourceExecutor {
 		}
 	}
 
-	private void runProcess(String command) throws Exception {
+	private boolean runProcess(String command) throws Exception {
 		Process pro = Runtime.getRuntime().exec(command);
 		printLines(command + " stdout:", pro.getInputStream());
 		pro.waitFor();
 		System.out.println(command + " exitValue() " + pro.exitValue());
-		System.out.println(isError(pro.getErrorStream() , command));
+		boolean error = isError(pro.getErrorStream(), command);
+		System.out.println(error);
+		return error;
 	}
 
 	private boolean isError(InputStream  errorStream , String command) throws Exception {
@@ -105,6 +116,18 @@ public class SourceExecutor {
 		String classPath = path.getPath();
 
 		classPath = classPath.split(".java")[0] + ".class";
+//		System.out.println(classPath);
+		try {
+			FileUtils.forceDelete(new File(classPath));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void removeCExecutableFile(File path){
+		String classPath = path.getPath();
+
+		classPath = classPath.split(".c")[0] + ".cout";
 //		System.out.println(classPath);
 		try {
 			FileUtils.forceDelete(new File(classPath));
