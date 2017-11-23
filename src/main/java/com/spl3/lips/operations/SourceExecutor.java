@@ -1,5 +1,6 @@
 package com.spl3.lips.operations;
 
+import com.spl3.lips.files.FileExtension;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +61,7 @@ public class SourceExecutor {
 		boolean success = false ;
 		String command;
 		try {
-			command = "gcc -o " + path.getPath().split("\\.c")[0].concat(".cout") + " " + path.getPath();
+			command = "gcc -o " + path.getPath().split("\\.c")[0].concat(FileExtension.cExecutable.getValue()) + " " + path.getPath();
 			success = runProcess(command);
 //			Runtime.getRuntime().exec(command).getOutputStream().flush();
 //			executeJavaFile(path);
@@ -127,7 +128,7 @@ public class SourceExecutor {
 	private void removeCExecutableFile(File path){
 		String classPath = path.getPath();
 
-		classPath = classPath.split(".c")[0] + ".cout";
+		classPath = classPath.split(".c")[0] + FileExtension.cExecutable.getValue();
 //		System.out.println(classPath);
 		try {
 			FileUtils.forceDelete(new File(classPath));
@@ -135,4 +136,12 @@ public class SourceExecutor {
 			e.printStackTrace();
 		}
 	}
+
+//	public boolean compileBatchFiles(File rootPath) throws Exception {
+//		if(!rootPath.isDirectory()){
+//			throw new Exception("Root path must be a directory");
+//		}
+//
+//		FileUtils.fil
+//	}
 }
