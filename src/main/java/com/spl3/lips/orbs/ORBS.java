@@ -53,9 +53,14 @@ public class ORBS {
 		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
 //		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
 		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
-//		ORBS orbs = new ORBS();
-//		orbs.setup();
-//		orbs.createFiles();
+		try {
+			SourceExecutor.getInstance().compileBatchFiles(new File(outputPathName));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		ORBS orbs = new ORBS();
+		orbs.setup();
+		orbs.createFiles(orbs.deleted);
 
 //		logger.info(orbs.hash());
 
