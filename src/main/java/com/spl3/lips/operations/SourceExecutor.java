@@ -1,13 +1,16 @@
 package com.spl3.lips.operations;
 
+import com.spl3.lips.files.DirectoryReader;
 import com.spl3.lips.files.FileExtension;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 /**
  * Created by peacefrog on 10/5/17.
@@ -34,7 +37,7 @@ public class SourceExecutor {
 		try {
 			removeClassFile(path);
 			command = "javac " + path.getPath();
-			success = runProcess(command);
+			success = !runProcess(command);
 //			Runtime.getRuntime().exec(command).getOutputStream().flush();
 //			executeJavaFile(path);
 		} catch (Exception e) {
@@ -62,7 +65,7 @@ public class SourceExecutor {
 		String command;
 		try {
 			command = "gcc -o " + path.getPath().split("\\.c")[0].concat(FileExtension.cExecutable.getValue()) + " " + path.getPath();
-			success = runProcess(command);
+			success = !runProcess(command);
 //			Runtime.getRuntime().exec(command).getOutputStream().flush();
 //			executeJavaFile(path);
 		} catch (Exception e) {
@@ -73,14 +76,14 @@ public class SourceExecutor {
 	}
 
 
-	private boolean executeJavaFile(File path) throws Exception {
+	private boolean executeJavaFile(File path)  {
 		String command;
 		boolean success = false ;
 		try {
 			command = "java -cp " + path.getParent() + " " + path.getName().replace(".java", "") + " 10.0";
 			System.out.println(command);
 //			Runtime.getRuntime().exec(s).getOutputStream().flush();
-			success = runProcess(command);
+			success = !runProcess(command);
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -137,11 +140,38 @@ public class SourceExecutor {
 		}
 	}
 
-//	public boolean compileBatchFiles(File rootPath) throws Exception {
-//		if(!rootPath.isDirectory()){
-//			throw new Exception("Root path must be a directory");
-//		}
-//
-//		FileUtils.fil
-//	}
+	public boolean compileBatchFiles(File rootPath) throws Exception {
+		if(!rootPath.isDirectory()){
+			throw new Exception("Root path must be a directory");
+		}
+		else {
+			ArrayList<File> listOfFiles = DirectoryReader.getInstance().listFilesForFolder(rootPath);
+
+			for (File file : listOfFiles) {
+				if (FilenameUtils.isExtension(file.getName(), getCompilableExtensions())) {
+					boolean success = false;
+					if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.c.getValue())) {
+						success = compileJavaFile(file);
+					} else if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.java.getValue())) {
+						success = compileJavaFile(file);
+					}
+//				else if(FilenameUtils.getExtension(file.getName()).equals(FileExtension.python.getValue())){
+//					success =compileJavaFile(file);
+//				}
+					if (!success) return success;
+				}
+			}
+			return true;
+		}
+	}
+
+	private String[] getCompilableExtensions(){
+		String[] extensions = new String[3];
+
+		extensions[0] = FileExtension.c.getValue();
+		extensions[1] = FileExtension.java.getValue();
+		extensions[2] = FileExtension.python.getValue();
+
+		return extensions;
+	}
 }
