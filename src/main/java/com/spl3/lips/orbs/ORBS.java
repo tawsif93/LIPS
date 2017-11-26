@@ -22,7 +22,8 @@ import java.util.Map;
 public class ORBS {
 
 	final static Logger logger = Logger.getLogger(ORBS.class);
-	final static String outputPathName = "work";
+	final static String outputPath = "work";
+	final static String sourcePath = "example/orig";
 	final static String FAIL = "FAIL";
 
 //	 Size of the deletion window
@@ -49,12 +50,12 @@ public class ORBS {
 	public static void main(String[] args) {
 
 		ORBSLogger.tieSystemOutAndErrToLog();
-		DirectoryReader.getInstance().init("/home/peacefrog/SPL_LIPS");
+		DirectoryReader.getInstance().init(sourcePath);
 		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
 //		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
-		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
+//		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
 		try {
-			SourceExecutor.getInstance().compileBatchFiles(new File(outputPathName));
+			SourceExecutor.getInstance().compileBatchFiles(new File(outputPath));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -166,7 +167,7 @@ public class ORBS {
 
 	public void createFiles(boolean[] sliced){
 
-		File directory = new File(outputPathName);
+		File directory = new File(outputPath);
 		if (! directory.exists()){
 			directory.mkdir();
 			// If you require it to make the entire directory path including parents,
@@ -184,7 +185,7 @@ public class ORBS {
 
 			if(!sliced[i]){
 				try {
-					FileUtils.write(new File(outputPathName + File.separator + fileName.getName()) ,
+					FileUtils.write(new File(outputPath + File.separator + fileName.getName()) ,
 									fileContent + System.lineSeparator() ,
 									Charset.defaultCharset(),
 									true);
