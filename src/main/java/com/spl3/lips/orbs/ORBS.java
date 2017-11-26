@@ -5,12 +5,15 @@ import com.spl3.lips.operations.ORBSLogger;
 import com.spl3.lips.operations.SourceExecutor;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,23 +25,25 @@ import java.util.Map;
 public class ORBS {
 
 	final static Logger logger = Logger.getLogger(ORBS.class);
+	final static Logger compileLogger = Logger.getLogger("compileLogger");
+	final static Logger testLogger = Logger.getLogger("testLogger");
 	final static String outputPath = "work";
 	final static String sourcePath = "example/orig";
 	final static String FAIL = "FAIL";
 
-//	 Size of the deletion window
+	//	 Size of the deletion window
 	private int delta = 3;
 	//  Number of ignored lines
 	private  int numberOfIgnoredChanges = 0;
-//	Number of compilations
+	//	Number of compilations
 	private int numberOfCompilation = 0;
-//  Number of cached compilations
+	//  Number of cached compilations
 	private int numberOfCachedCompilation= 0;
-//	Number of cached executions
+	//	Number of cached executions
 	private int numberOfCahedExecutoins= 0;
-//	Number of executions
+	//	Number of executions
 	private  int numberOfExecutions = 0;
-//  Number of main loop iterations
+	//  Number of main loop iterations
 	private int numberOfIterations= 0;
 
 	private File [] files;
@@ -62,7 +67,6 @@ public class ORBS {
 		ORBS orbs = new ORBS();
 		orbs.setup();
 		orbs.createFiles(orbs.deleted);
-
 //		logger.info(orbs.hash());
 
 	}
@@ -159,10 +163,55 @@ public class ORBS {
 						cachedComputation = false;
 //						create the files and compile them
 						createFiles(attempted);
+						rc = compile(Integer.toString(line+1 ) + "-" + Integer.toString(ij+1));
+						System.out.print("compile " + numberOfCompilation + ":");
+						sliceCache.put(checksum, rc);
+					}
+
+					if (rc.equals(FAIL)){
+						status = "F";
+						System.out.println(FAIL);
+						ij += step;
+						j += 1;
+					}
+					else {
+//                compilation succeeded.
+						System.out.print("OK");
+						break;
 					}
 				}
 			}
 		}
+	}
+
+	private String compile(String log) {
+
+		this.numberOfCompilation++;
+		String output = "";
+		boolean success = false;
+		try {
+			success = SourceExecutor.getInstance().compileBatchFiles(new File(outputPath));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if(success){
+			File[] files = new File(outputPath).listFiles();
+
+			ArrayList<File>fileArrayList = new ArrayList<>();
+
+			for (File file : files) {
+				if(FilenameUtils.isExtension(file.getName() , SourceExecutor.getInstance().getCompilableExtensions())){
+					fileArrayList.add(file);
+				}
+			}
+			output= fileCheckSum(fileArrayList.toArray(new File[0]));
+		}
+		if(StringUtils.isEmpty(output)){
+			output = FAIL;
+		}
+
+		compileLogger.debug("C " + log + " " + output);
+		return output;
 	}
 
 	public void createFiles(boolean[] sliced){
@@ -186,9 +235,9 @@ public class ORBS {
 			if(!sliced[i]){
 				try {
 					FileUtils.write(new File(outputPath + File.separator + fileName.getName()) ,
-									fileContent + System.lineSeparator() ,
-									Charset.defaultCharset(),
-									true);
+							fileContent + System.lineSeparator() ,
+							Charset.defaultCharset(),
+							true);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -196,7 +245,7 @@ public class ORBS {
 		}
 	}
 
-	public String hash(boolean[] sliced){
+	private String hash(boolean[] sliced){
 		MessageDigest md5 = DigestUtils.getMd5Digest();
 
 		for (boolean b : sliced) {

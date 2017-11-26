@@ -247,7 +247,7 @@ public class SourceExecutor {
 		}
 	}
 
-	private String[] getCompilableExtensions(){
+	public String[] getCompilableExtensions(){
 		String[] extensions = new String[3];
 
 		extensions[0] = FileExtension.c.getValue();
@@ -257,7 +257,7 @@ public class SourceExecutor {
 		return extensions;
 	}
 
-	private String[] getExecutableExtensions(){
+	public String[] getExecutableExtensions(){
 		String[] extensions = new String[3];
 
 		extensions[0] = FileExtension.cExecutable.getValue();
