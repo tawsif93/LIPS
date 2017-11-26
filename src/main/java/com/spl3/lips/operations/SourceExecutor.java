@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by peacefrog on 10/5/17.
@@ -76,11 +77,12 @@ public class SourceExecutor {
 	}
 
 
-	private boolean executeJavaFile(File path)  {
+	private boolean executeJavaFile(File path, List<String> args)  {
 		String command;
 		boolean success = false ;
 		try {
-			command = "java -cp " + path.getParent() + " " + path.getName().replace(".java", "") + " 10.0";
+			command = "java -cp " + path.getParent() + " " + path.getName();
+			command = mergeProgramArguments(command , args);
 			System.out.println(command);
 //			Runtime.getRuntime().exec(s).getOutputStream().flush();
 			success = !runProcess(command);
@@ -89,6 +91,43 @@ public class SourceExecutor {
 		}
 
 		return success;
+	}
+
+	private boolean executeCFile(File path, List<String> args)  {
+		String command;
+		boolean success = false ;
+		try {
+			command = "./" + path.getParent() + File.separator + path.getName() ;
+			command = mergeProgramArguments(command , args);
+			System.out.println(command);
+			success = !runProcess(command);
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+
+		return success;
+	}
+
+	private boolean executePythonFile(File path, List<String> args)  {
+		String command;
+		boolean success = false ;
+		try {
+			command = "LC_ALL=\"en_US\" python" + path.getParent() + File.separator + path.getName() ;
+			command = mergeProgramArguments(command , args);
+			System.out.println(command);
+			success = !runProcess(command);
+		} catch (Exception e){
+			e.printStackTrace();
+		}
+
+		return success;
+	}
+
+	private String mergeProgramArguments( String command , List<String> args){
+		final String[] tempCommand = {command};
+		args.forEach(s -> tempCommand[0] = command.concat(" ").concat(s));
+
+		return tempCommand[0];
 	}
 
 	private void printLines(String name, InputStream ins) throws Exception {
@@ -106,13 +145,14 @@ public class SourceExecutor {
 		pro.waitFor();
 		System.out.println(command + " exitValue() " + pro.exitValue());
 		boolean error = isError(pro.getErrorStream(), command);
-		System.out.println(error);
+		System.out.println("Error: " + error);
 		return error;
 	}
 
 	private boolean isError(InputStream  errorStream , String command) throws Exception {
 //		printLines(command + " stderr:", errorStream);
 		String output = IOUtils.toString(errorStream, Charset.defaultCharset());
+		System.out.println(output);
 		return !StringUtils.isEmpty(output) && StringUtils.contains(output, "error");
 	}
 
@@ -122,7 +162,9 @@ public class SourceExecutor {
 		classPath = classPath.split(".java")[0] + ".class";
 //		System.out.println(classPath);
 		try {
-			FileUtils.forceDelete(new File(classPath));
+			if(new File(classPath).exists()){
+				FileUtils.forceDelete(new File(classPath));
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -151,14 +193,54 @@ public class SourceExecutor {
 				if (FilenameUtils.isExtension(file.getName(), getCompilableExtensions())) {
 					boolean success = false;
 					if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.c.getValue())) {
-						success = compileJavaFile(file);
+						success = compileCFile(file);
 					} else if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.java.getValue())) {
 						success = compileJavaFile(file);
 					}
-//				else if(FilenameUtils.getExtension(file.getName()).equals(FileExtension.python.getValue())){
-//					success =compileJavaFile(file);
-//				}
-					if (!success) return success;
+					else if(FilenameUtils.getExtension(file.getName()).equals(FileExtension.python.getValue())){
+//						success =compileJavaFile(file);
+						success = true;
+					}
+					if (!success) {
+						return success;
+					}
+				}
+			}
+			return true;
+		}
+	}
+
+	public boolean executeBatchFiles(File rootPath) throws Exception {
+		if(!rootPath.isDirectory()){
+			throw new Exception("Root path must be a directory");
+		}
+		else {
+			ArrayList<File> listOfFiles = DirectoryReader.getInstance().listFilesForFolder(rootPath);
+
+			for (File file : listOfFiles) {
+
+				if (FilenameUtils.isExtension(file.getName(), getExecutableExtensions())) {
+
+					boolean success = false;
+					List<String > args = new ArrayList<>();
+
+					if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.c.getValue())) {
+						args.add("0");
+						success = executeCFile(file, args);
+
+					} else if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.java.getValue())) {
+						args.add("10");
+
+						success = executeJavaFile(file, args);
+					}
+					else if(FilenameUtils.getExtension(file.getName()).equals(FileExtension.python.getValue())){
+						args.add("1");
+						args.add("00");
+						success =executePythonFile(file , args);
+					}
+					if (!success) {
+						return success;
+					}
 				}
 			}
 			return true;
@@ -170,6 +252,16 @@ public class SourceExecutor {
 
 		extensions[0] = FileExtension.c.getValue();
 		extensions[1] = FileExtension.java.getValue();
+		extensions[2] = FileExtension.python.getValue();
+
+		return extensions;
+	}
+
+	private String[] getExecutableExtensions(){
+		String[] extensions = new String[3];
+
+		extensions[0] = FileExtension.cExecutable.getValue();
+		extensions[1] = FileExtension.javaClass.getValue();
 		extensions[2] = FileExtension.python.getValue();
 
 		return extensions;
