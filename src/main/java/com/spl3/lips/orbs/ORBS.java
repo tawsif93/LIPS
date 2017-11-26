@@ -51,6 +51,7 @@ public class ORBS {
 	private boolean [] deleted ;
 	private Map<String, Integer> startLines;
 	private Map<String, String> sliceCache;
+	private Map<String, String> resultCache;
 
 	public static void main(String[] args) {
 
@@ -79,6 +80,7 @@ public class ORBS {
 		deleted = new boolean[numberOfLines+1];
 		startLines = new HashMap<>();
 		sliceCache = new HashMap<>();
+		resultCache = new HashMap<>();
 
 		Arrays.fill(deleted, false);
 
@@ -175,9 +177,39 @@ public class ORBS {
 						j += 1;
 					}
 					else {
-//                compilation succeeded.
+//                      compilation succeeded.
 						System.out.print("OK");
 						break;
+					}
+				}
+
+				boolean passes = false;
+				String projected;
+				if (!rc.equals(FAIL)) {
+//                     check if we cached the result for this program instance
+					if (resultCache.containsKey(rc)) {
+//                      executed this before
+						cached = true;
+						projected = resultCache.get(rc);
+						numberOfCahedExecutoins += 1;
+						System.out.print("cached " + numberOfCahedExecutoins + ":");
+					} else {
+//                      execute and capture the projected trajectory.
+						cached = false;
+						projected = execute(str(line + 1) + "-" + str(ij + 1));
+						resultCache.put(rc, projected);
+						System.out.print("execution " + numberOfExecutions + ":");
+					}
+					if (projected.equals(original)) {
+//                      the projected trajectory has not changed and the
+//                      slice is valid.
+						System.out.println("UNCHANGED");
+						passes = true;
+					} else {
+//                      the projected trajectory has changed, the slice
+//                      is not valid.
+						System.out.println("CHANGED");
+						status = "C";
 					}
 				}
 			}
