@@ -12,6 +12,8 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by peacefrog on 10/5/17.
@@ -20,6 +22,7 @@ import java.util.List;
 public class SourceExecutor {
 
 	final static Logger logger = Logger.getLogger(SourceExecutor.class);
+	final static Logger testLogger = Logger.getLogger("testLogger");
 	private static SourceExecutor sourceExecutorInstance;
 
 	private SourceExecutor() {
@@ -112,7 +115,7 @@ public class SourceExecutor {
 		String command;
 		boolean success = false ;
 		try {
-			command = "LC_ALL=\"en_US\" python" + path.getParent() + File.separator + path.getName() ;
+			command = "LC_ALL=\"en_US\" python " + path.getParent() + File.separator + path.getName() ;
 			command = mergeProgramArguments(command , args);
 			System.out.println(command);
 			success = !runProcess(command);
@@ -135,6 +138,7 @@ public class SourceExecutor {
 		BufferedReader in = new BufferedReader(
 				new InputStreamReader(ins));
 		while ((line = in.readLine()) != null) {
+			testLogger.debug(line);
 			System.out.println(name + " " + line);
 		}
 	}
@@ -152,7 +156,7 @@ public class SourceExecutor {
 	private boolean isError(InputStream  errorStream , String command) throws Exception {
 //		printLines(command + " stderr:", errorStream);
 		String output = IOUtils.toString(errorStream, Charset.defaultCharset());
-		System.out.println(output);
+//		System.out.println(output);
 		return !StringUtils.isEmpty(output) && StringUtils.contains(output, "error");
 	}
 
@@ -210,32 +214,36 @@ public class SourceExecutor {
 		}
 	}
 
-	public boolean executeBatchFiles(File rootPath) throws Exception {
+	public boolean executeBatchFiles(File rootPath, Map<String, ArrayList<String>> rootFileArgs) throws Exception {
 		if(!rootPath.isDirectory()){
 			throw new Exception("Root path must be a directory");
 		}
 		else {
-			ArrayList<File> listOfFiles = DirectoryReader.getInstance().listFilesForFolder(rootPath);
+			Set<String> executableFiles = rootFileArgs.keySet();
+//			ArrayList<File> listOfFiles = DirectoryReader.getInstance().listFilesForFolder(rootPath);
+			ArrayList<File> listOfFiles = new ArrayList<>();
+
+			executableFiles.forEach(s -> listOfFiles.add(new File(rootPath + File.separator + s)));
 
 			for (File file : listOfFiles) {
 
 				if (FilenameUtils.isExtension(file.getName(), getExecutableExtensions())) {
 
 					boolean success = false;
-					List<String > args = new ArrayList<>();
+					List<String > args = rootFileArgs.get(file.getName());
 
 					if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.c.getValue())) {
-						args.add("0");
+//						args.add("0");
 						success = executeCFile(file, args);
 
 					} else if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.java.getValue())) {
-						args.add("10");
+//						args.add("10");
 
 						success = executeJavaFile(file, args);
 					}
 					else if(FilenameUtils.getExtension(file.getName()).equals(FileExtension.python.getValue())){
-						args.add("1");
-						args.add("00");
+//						args.add("1");
+//						args.add("00");
 						success =executePythonFile(file , args);
 					}
 					if (!success) {

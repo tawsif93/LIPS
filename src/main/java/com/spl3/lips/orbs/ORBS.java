@@ -13,10 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by peacefrog on 9/30/17.
@@ -40,7 +37,7 @@ public class ORBS {
 	//  Number of cached compilations
 	private int numberOfCachedCompilation= 0;
 	//	Number of cached executions
-	private int numberOfCahedExecutoins= 0;
+	private int numberOfCachedExecutions = 0;
 	//	Number of executions
 	private  int numberOfExecutions = 0;
 	//  Number of main loop iterations
@@ -60,14 +57,15 @@ public class ORBS {
 		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
 //		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
 //		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
-		try {
-			SourceExecutor.getInstance().compileBatchFiles(new File(outputPath));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+//			SourceExecutor.getInstance().compileBatchFiles(new File(outputPath));
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 		ORBS orbs = new ORBS();
 		orbs.setup();
 		orbs.createFiles(orbs.deleted);
+		orbs.runORBS();
 //		logger.info(orbs.hash());
 
 	}
@@ -117,9 +115,9 @@ public class ORBS {
 			this.numberOfIterations += 1;
 			int line = start;
 
-			while (line >= 0 && line < lines.length){
+			while (line >= 0 && line < lines.length) {
 				String currentFile = lines[line][0];
-				int currentLine = line+1-startLines.get(lines[line][0]);
+				int currentLine = line + 1 - startLines.get(lines[line][0]);
 
 //         skip over all deleted lines
 				if (deleted[line]) {
@@ -128,7 +126,7 @@ public class ORBS {
 					continue;
 				}
 
-				boolean [] attempted = Arrays.copyOf(deleted , deleted.length);
+				boolean[] attempted = Arrays.copyOf(deleted, deleted.length);
 
 
 				String status = "";
@@ -137,46 +135,44 @@ public class ORBS {
 
 				int j = 1;
 				int ij = line;
-				while (j <= delta){
-					while (ij >= 0 && ij < deleted.length-1 && deleted[ij]){
+				while (j <= delta) {
+					while (ij >= 0 && ij < deleted.length - 1 && deleted[ij]) {
 						ij += step;
 					}
 
-					if (ij < 0 || ij >= deleted.length-1) {
+					if (ij < 0 || ij >= deleted.length - 1) {
 						rc = "FAIL";
 						break;
 					}
 
 					attempted[ij] = true;
 
-					System.out.println("* " + numberOfIterations + " delete " + (line+1) + "-" + (ij+1)+ " in "+ currentFile + " at "+ currentLine);
+					System.out.println("* " + numberOfIterations + " delete " + (line + 1) + "-" + (ij + 1) + " in " + currentFile + " at " + currentLine);
 
 					boolean cachedComputation = false;
 					String checksum = hash(attempted);
 					rc = "";
 
-					if(sliceCache.containsKey(checksum)){
+					if (sliceCache.containsKey(checksum)) {
 						cachedComputation = true;
 						rc = sliceCache.get(checksum);
-						numberOfCachedCompilation++ ;
-						System.out.println( "comp cached " + numberOfCachedCompilation + ":");
-					}
-					else {
+						numberOfCachedCompilation++;
+						System.out.println("comp cached " + numberOfCachedCompilation + ":");
+					} else {
 						cachedComputation = false;
 //						create the files and compile them
 						createFiles(attempted);
-						rc = compile(Integer.toString(line+1 ) + "-" + Integer.toString(ij+1));
+						rc = compile(Integer.toString(line + 1) + "-" + Integer.toString(ij + 1));
 						System.out.print("compile " + numberOfCompilation + ":");
 						sliceCache.put(checksum, rc);
 					}
 
-					if (rc.equals(FAIL)){
+					if (rc.equals(FAIL)) {
 						status = "F";
 						System.out.println(FAIL);
 						ij += step;
 						j += 1;
-					}
-					else {
+					} else {
 //                      compilation succeeded.
 						System.out.print("OK");
 						break;
@@ -191,16 +187,17 @@ public class ORBS {
 //                      executed this before
 						cached = true;
 						projected = resultCache.get(rc);
-						numberOfCahedExecutoins += 1;
-						System.out.print("cached " + numberOfCahedExecutoins + ":");
+						numberOfCachedExecutions += 1;
+						System.out.print("cached " + numberOfCachedExecutions + ":");
 					} else {
 //                      execute and capture the projected trajectory.
 						cached = false;
-						projected = execute(str(line + 1) + "-" + str(ij + 1));
+						projected = execute(Integer.toString(line + 1) + "-" + Integer.toString(ij + 1));
 						resultCache.put(rc, projected);
 						System.out.print("execution " + numberOfExecutions + ":");
 					}
-					if (projected.equals(original)) {
+//					if (projected.equals(original)) {
+					if (true) {
 //                      the projected trajectory has not changed and the
 //                      slice is valid.
 						System.out.println("UNCHANGED");
@@ -210,6 +207,31 @@ public class ORBS {
 //                      is not valid.
 						System.out.println("CHANGED");
 						status = "C";
+					}
+				}
+
+				if (passes) {
+//                  The deletion has produced a valid slice.Continue
+//                  deletion on this valid slice and try to deleted more.
+					deleted = attempted;
+					reduced = true;
+					if (cached) {
+						status = "Dc";
+					} else {
+						status = "D";
+					}
+					for (int i = 0; i < j; i++) {
+						logger.info(currentFile + ":" + Integer.toString(currentLine + i) + ":" + status + "\n");
+						line += j * step;
+					}
+				} else {
+//                  It is not possible to delete the current line.Try the
+//                  next one.
+					line += step;
+					if (cached) {
+						logger.info(currentFile + ":" + currentLine + ":" + status + "c\n");
+					} else {
+						logger.info(currentFile + ":" + currentLine + ":" + status + "\n");
 					}
 				}
 			}
@@ -244,6 +266,29 @@ public class ORBS {
 
 		compileLogger.debug("C " + log + " " + output);
 		return output;
+	}
+
+	private String execute(String log)  {
+
+		this.numberOfExecutions++;
+		Map<String , ArrayList<String>> rootFileArgs = new HashMap<>();
+		ArrayList<String> args = new ArrayList<>();
+		args.add("10 00");
+		rootFileArgs.put("glue.py" , args );
+
+		try {
+			logger.info("Execution: " +SourceExecutor.getInstance().executeBatchFiles(new File(outputPath),rootFileArgs));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			return FileUtils.readFileToString(new File("logs" + File.separator + "test.log"), Charset.defaultCharset());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return "";
 	}
 
 	public void createFiles(boolean[] sliced){
