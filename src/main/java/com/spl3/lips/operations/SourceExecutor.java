@@ -23,6 +23,7 @@ public class SourceExecutor {
 
 	final static Logger logger = Logger.getLogger(SourceExecutor.class);
 	final static Logger testLogger = Logger.getLogger("testLogger");
+	final static Logger errorLogger = Logger.getLogger("errorLogger");
 	private static SourceExecutor sourceExecutorInstance;
 
 	private SourceExecutor() {
@@ -111,11 +112,11 @@ public class SourceExecutor {
 		return success;
 	}
 
-	private boolean executePythonFile(File path, List<String> args)  {
+	public boolean executePythonFile(File path, List<String> args)  {
 		String command;
 		boolean success = false ;
 		try {
-			command = "LC_ALL=\"en_US\" python " + path.getParent() + File.separator + path.getName() ;
+			command = "python " + path.getParent() + File.separator + path.getName() ;
 			command = mergeProgramArguments(command , args);
 			System.out.println(command);
 			success = !runProcess(command);
@@ -157,6 +158,7 @@ public class SourceExecutor {
 //		printLines(command + " stderr:", errorStream);
 		String output = IOUtils.toString(errorStream, Charset.defaultCharset());
 //		System.out.println(output);
+		errorLogger.error(output);
 		return !StringUtils.isEmpty(output) && StringUtils.contains(output, "error");
 	}
 
