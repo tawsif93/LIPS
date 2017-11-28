@@ -225,7 +225,7 @@ public class SourceExecutor {
 //			ArrayList<File> listOfFiles = DirectoryReader.getInstance().listFilesForFolder(rootPath);
 			ArrayList<File> listOfFiles = new ArrayList<>();
 
-			executableFiles.forEach(s -> listOfFiles.add(new File(rootPath + File.separator + s)));
+			executableFiles.forEach(s -> listOfFiles.add(new File(rootPath.getPath() + File.separator + s)));
 
 			for (File file : listOfFiles) {
 

@@ -49,24 +49,29 @@ public class ORBS {
 	private Map<String, Integer> startLines;
 	private Map<String, String> sliceCache;
 	private Map<String, String> resultCache;
+	private String original;
 
 	public static void main(String[] args) {
 
 		ORBSLogger.tieSystemOutAndErrToLog();
 		DirectoryReader.getInstance().init(sourcePath);
-		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
+//		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
 //		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
 //		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
+
+		ORBS orbs = new ORBS();
+		orbs.setup();
+		orbs.createFiles(orbs.deleted);
+		orbs.runOriginal();
+		orbs.runORBS();
+//		logger.info(orbs.hash());
+
 //		try {
 //			SourceExecutor.getInstance().compileBatchFiles(new File(outputPath));
 //		} catch (Exception e) {
 //			e.printStackTrace();
 //		}
-		ORBS orbs = new ORBS();
-		orbs.setup();
-		orbs.createFiles(orbs.deleted);
-		orbs.runORBS();
-//		logger.info(orbs.hash());
+//		SourceExecutor.getInstance().executePythonFile(new File(outputPath + "/glue.py"), Collections.singletonList("10 00000"));
 
 	}
 
@@ -104,6 +109,16 @@ public class ORBS {
 		logger.info(Arrays.deepToString(lines));
 	}
 
+	private void runOriginal() {
+		String compileOutput = compile("Original");
+		if (!compileOutput.equals(FAIL)){
+			original = execute("Original");
+		}
+		else {
+			original = "";
+		}
+	}
+
 
 	public void runORBS(){
 		boolean reduced = true;
@@ -115,7 +130,7 @@ public class ORBS {
 			this.numberOfIterations += 1;
 			int line = start;
 
-			while (line >= 0 && line < lines.length) {
+			while (line >= 0 && line < lines.length-1) {
 				String currentFile = lines[line][0];
 				int currentLine = line + 1 - startLines.get(lines[line][0]);
 
