@@ -23,8 +23,11 @@ public class SourceExecutor {
 
 	final static Logger logger = Logger.getLogger(SourceExecutor.class);
 	final static Logger testLogger = Logger.getLogger("testLogger");
+	final static Logger executionLogger = Logger.getLogger("executionLogger");
 	final static Logger errorLogger = Logger.getLogger("errorLogger");
 	private static SourceExecutor sourceExecutorInstance;
+
+	private String output = "";
 
 	private SourceExecutor() {
 	}
@@ -69,7 +72,7 @@ public class SourceExecutor {
 		boolean success = false ;
 		String command;
 		try {
-			command = "gcc -o " + path.getPath().split("\\.c")[0].concat(FileExtension.cExecutable.getValue()) + " " + path.getPath();
+			command = "gcc -o " + path.getPath().split("c")[0].concat(FileExtension.cExecutable.getValue()) + " " + path.getPath();
 			success = !runProcess(command);
 //			Runtime.getRuntime().exec(command).getOutputStream().flush();
 //			executeJavaFile(path);
@@ -116,10 +119,17 @@ public class SourceExecutor {
 		String command;
 		boolean success = false ;
 		try {
-			command = "python " + path.getParent() + File.separator + path.getName() ;
-			command = mergeProgramArguments(command , args);
-			System.out.println(command);
-			success = !runProcess(command);
+			String filename = path.getParent() + File.separator + path.getName();
+			if(new File(filename).exists()) {
+				command = "python " + filename;
+				command = mergeProgramArguments(command, args);
+				System.out.println(command);
+				success = !runProcess(command);
+			}
+			else {
+				executionLogger.info("FAIL");
+				success= false;
+			}
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -139,7 +149,9 @@ public class SourceExecutor {
 		BufferedReader in = new BufferedReader(
 				new InputStreamReader(ins));
 		while ((line = in.readLine()) != null) {
-			testLogger.debug(line);
+			logger.debug(line);
+			output = output.concat(line).concat("\n");
+
 			System.out.println(name + " " + line);
 		}
 	}
@@ -216,11 +228,13 @@ public class SourceExecutor {
 		}
 	}
 
-	public boolean executeBatchFiles(File rootPath, Map<String, ArrayList<String>> rootFileArgs) throws Exception {
+	public String executeBatchFiles(File rootPath, Map<String, ArrayList<String>> rootFileArgs) throws Exception {
 		if(!rootPath.isDirectory()){
 			throw new Exception("Root path must be a directory");
 		}
 		else {
+			this.output = "";
+
 			Set<String> executableFiles = rootFileArgs.keySet();
 //			ArrayList<File> listOfFiles = DirectoryReader.getInstance().listFilesForFolder(rootPath);
 			ArrayList<File> listOfFiles = new ArrayList<>();
@@ -234,11 +248,11 @@ public class SourceExecutor {
 					boolean success = false;
 					List<String > args = rootFileArgs.get(file.getName());
 
-					if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.c.getValue())) {
+					if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.cExecutable.getValue())) {
 //						args.add("0");
 						success = executeCFile(file, args);
 
-					} else if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.java.getValue())) {
+					} else if (FilenameUtils.getExtension(file.getName()).equals(FileExtension.javaClass.getValue())) {
 //						args.add("10");
 
 						success = executeJavaFile(file, args);
@@ -249,11 +263,11 @@ public class SourceExecutor {
 						success =executePythonFile(file , args);
 					}
 					if (!success) {
-						return success;
+						return "FAIL";
 					}
 				}
 			}
-			return true;
+			return output;
 		}
 	}
 

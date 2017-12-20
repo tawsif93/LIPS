@@ -9,7 +9,7 @@ public enum FileExtension {
 	java("java"),
 	javaClass("class"),
 	c("c"),
-	cExecutable(".cout"),
+	cExecutable("cout"),
 	python("py");
 
 
