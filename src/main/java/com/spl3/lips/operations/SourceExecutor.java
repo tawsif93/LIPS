@@ -88,7 +88,7 @@ public class SourceExecutor {
 		String command;
 		boolean success = false ;
 		try {
-			command = "java -cp " + path.getParent() + " " + path.getName();
+			command = "java -cp " + path.getParent() + " " + path.getName().split(".class")[0];
 			command = mergeProgramArguments(command , args);
 			System.out.println(command);
 //			Runtime.getRuntime().exec(s).getOutputStream().flush();
@@ -139,7 +139,7 @@ public class SourceExecutor {
 
 	private String mergeProgramArguments( String command , List<String> args){
 		final String[] tempCommand = {command};
-		args.forEach(s -> tempCommand[0] = command.concat(" ").concat(s));
+		args.forEach(s -> tempCommand[0] = tempCommand[0].concat(" ").concat(s));
 
 		return tempCommand[0];
 	}
