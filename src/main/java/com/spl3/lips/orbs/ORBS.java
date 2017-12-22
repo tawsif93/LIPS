@@ -27,9 +27,9 @@ public class ORBS {
 	final static Logger sliceLogger = Logger.getLogger("projectedLogger");
 	final static Logger executionLogger = Logger.getLogger("executionLogger");
 	final static Logger statisticsLogger = Logger.getLogger("statisticsLogger");
-	final static String outputPath = "work";
-	final static String sourcePath = "example/orig";
 	final static String FAIL = "FAIL";
+	private String outputPath = "work";
+	private String sourcePath = "example/orig"/*"toh"*/;
 
 	//	 Size of the deletion window
 	private int delta = 3;
@@ -53,22 +53,22 @@ public class ORBS {
 	private Map<String, String> sliceCache;
 	private Map<String, String> resultCache;
 	private String original;
+	private Map<String, ArrayList<String>> commandLineParams;
 
 	public static void main(String[] args) {
 
 		ORBSLogger.tieSystemOutAndErrToLog();
-		DirectoryReader.getInstance().init(sourcePath);
 //		System.out.println(DirectoryReader.getInstance().getRepository().getAllFiles());
 //		SourceExecutor.getInstance().compileJavaFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/checker.java"));
 //		SourceExecutor.getInstance().compileCFile(new File("/home/peacefrog/Dropbox/orbs/projects/example/work/reader.c"));
 
-		ORBS orbs = new ORBS();
-		orbs.setup();
-		orbs.createFiles(orbs.deleted, outputPath);
-		orbs.runOriginal();
-		orbs.runORBS();
-		orbs.createFiles(orbs.deleted, outputPath);
-		orbs.success();
+//		ORBS orbs = new ORBS();
+//		orbs.setup();
+//		orbs.createFiles(orbs.deleted, outputPath);
+//		orbs.runOriginal();
+//		orbs.runORBS();
+//		orbs.createFiles(orbs.deleted, outputPath);
+//		orbs.success();
 //		logger.info(orbs.hash());
 
 //		try {
@@ -80,7 +80,17 @@ public class ORBS {
 
 	}
 
+	public void runSlice(){
+		setup();
+		createFiles(deleted, outputPath);
+		runOriginal();
+		runORBS();
+		createFiles(deleted, outputPath);
+		success();
+	}
+
 	private void setup(){
+		DirectoryReader.getInstance().init(sourcePath);
 		files = DirectoryReader.getInstance().getRepository().getAllFiles().toArray(new File[0]);
 		int numberOfLines = DirectoryReader.getInstance().getRepository().getAllFilesLineCount(files);
 
@@ -328,10 +338,13 @@ public class ORBS {
 	private String execute(String log)  {
 
 		this.numberOfExecutions++;
-		Map<String , ArrayList<String>> rootFileArgs = new HashMap<>();
-		ArrayList<String> args = new ArrayList<>();
-		args.add("10 00");
-		rootFileArgs.put("glue.py" , args );
+		Map<String , ArrayList<String>> rootFileArgs = commandLineParams;
+//		ArrayList<String> args = new ArrayList<>();
+//		args.add("10 00");
+//		rootFileArgs.put("glue.py" , args );
+
+//		args.add("10");
+//		rootFileArgs.put("TowerOfHanoi.class" , args );
 //		args.add("1 1");
 //		rootFileArgs.put("mbe.cout" , args );
 		String output = "";
@@ -490,5 +503,15 @@ public class ORBS {
 		return digestBuilder.toString();
 	}
 
+	public void setOutputPath(String outputPath) {
+		this.outputPath = outputPath;
+	}
 
+	public void setSourcePath(String sourcePath) {
+		this.sourcePath = sourcePath;
+	}
+
+	public void setCommandLineParams(Map<String, ArrayList<String>> commandLineParams) {
+		this.commandLineParams = commandLineParams;
+	}
 }
