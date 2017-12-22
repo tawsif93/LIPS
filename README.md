@@ -16,3 +16,7 @@ For example `-o output`
 Source starting point and a list of source program argument have to be provided in command line argument with `-a` parameter. 
 
 For example `-a glue.py 10 00`
+
+An example of full command `-s toh -o work -a TowerOfHanoi.class 10 `
+
+Statistics of slices are stored in `logs` folder 
